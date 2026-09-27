@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<title>🎬 {{ title }} — এখানে দেশি নতুন সব ভিডিও</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="wrap" id="gate">
+    <div class="brand">🎬 এখানে দেশি নতুন সব ভিডিও</div>
+    <div class="badge">⚡ স্পন্সরড বিজ্ঞাপন</div>
+    <div class="emoji">🎬</div>
+    <h1>{{ title }}</h1>
+    <p class="sub">ভিডিও লোড হচ্ছে...</p>
+
+    <div class="timer-wrap">
+        <div class="timer" id="timer">{{ ad_duration }}</div>
+        <svg class="ring" viewBox="0 0 100 100">
+            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+            <circle class="ring-fg" cx="50" cy="50" r="45" id="ring"/>
+        </svg>
+    </div>
+
+    <p class="note">বিজ্ঞাপন শেষ হলে ভিডিও স্বয়ংক্রিয়ভাবে শুরু হবে</p>
+    <button id="skip" class="skip hidden" onclick="startVideo()">▶️ ভিডিও চালান</button>
+</div>
+
+<div class="player hidden" id="player">
+    <div class="player-top">
+        <span class="live-dot"></span>
+        <span>{{ title }}</span>
+    </div>
+    <video id="vid" controls autoplay playsinline webkit-playsinline preload="auto">
+        <source src="/video/{{ token }}" type="video/mp4">
+    </video>
+</div>
+
+<script>
+const DURATION = {{ ad_duration }} || 15;
+let left = DURATION;
+const timerEl = document.getElementById('timer');
+const ring = document.getElementById('ring');
+const skipBtn = document.getElementById('skip');
+const gate = document.getElementById('gate');
+const player = document.getElementById('player');
+
+const circ = 2 * Math.PI * 45;
+ring.style.strokeDasharray = circ;
+ring.style.strokeDashoffset = circ;
+
+const startT = Date.now();
+const iv = setInterval(() => {
+    const elapsed = (Date.now() - startT) / 1000;
+    const pct = Math.min(elapsed / DURATION, 1);
+    left = Math.max(0, Math.ceil(DURATION - elapsed));
+    timerEl.textContent = left > 0 ? left : '✓';
+    ring.style.strokeDashoffset = circ * (1 - pct);
+    if (pct >= 1) {
+        clearInterval(iv);
+        timerEl.textContent = '✓';
+        skipBtn.classList.remove('hidden');
+        setTimeout(startVideo, 800);
+    }
+}, 100);
+
+window.startVideo = function() {
+    gate.style.display = 'none';
+    player.classList.remove('hidden');
+    document.getElementById('vid').play().catch(()=>{});
+};
+</script>
+</body>
+</html>
